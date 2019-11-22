@@ -19,6 +19,7 @@ class Orders(Base):
     address = db.Column(db.String(255))
     phone = db.Column(db.String(16))
     province = db.Column(db.String(16))
+    publicist = db.Column(db.String(128))
     city = db.Column(db.String(16))
     area = db.Column(db.String(16))
     input_staff = db.Column(db.String(64))

@@ -42,3 +42,8 @@ class Error410(CodeDict):
     code = 410
     msg = '登录已过期'
     pass
+
+class Error405(CodeDict):
+    code = 405
+    msg = '宣传编号不存在，请与上级核实。'
+    pass
