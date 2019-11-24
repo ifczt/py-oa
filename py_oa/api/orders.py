@@ -11,29 +11,34 @@ from settings import METHODS
 
 order = Blueprint("order", __name__)
 
+
 @order.route('/order/list', methods=METHODS)
 @login_required
-def list(u_id):
+def order_list(u_id):
     # print(request.get_json())
     return {
         'code': 200,
         'data': {
-          'total': 0,
-          'items': []
+            'total': 0,
+            'items': []
         }}
+
 
 @order.route('/order/input', methods=METHODS)
 @login_required
-def input(u_id):
+def order_input(u_id):
     """
     订单录入
     :return: {code}
     """
     res_dir = request.get_json()
     del res_dir['area']
-    print(res_dir)
+    del res_dir['id']
+    del res_dir['delivery_state']
     _order = Orders(**res_dir)
     db.session.add(_order)
+    db.session.flush()
+    Succ200.data = {'id': _order.id, 'delivery_state': '签收'}
     db.session.commit()
     return Succ200.to_dict()
 
@@ -69,12 +74,10 @@ def express_list():
 @order.route('/order/ppg_id_info', methods=METHODS)
 @login_required
 def ppg_id_info(u_id):
-    a = {'123456':{'school':'abcdef'},'456321':{'school':'的东西学校'}}
+    a = {'123456': {'school': '好学校', 'publicist': '陈大海'}, '456321': {'school': '的东西学校', 'publicist': '陈大海'}}
     res_dir = request.get_json()
     ppg_id = res_dir.get('ppg_id')
     if ppg_id not in a:
         return Error405.to_dict()
     Succ200.data = a[ppg_id]
     return Succ200.to_dict()
-
-

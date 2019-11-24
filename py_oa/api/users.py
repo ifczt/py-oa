@@ -4,10 +4,14 @@ from py_oa.models.Users import Users
 from py_oa.utils.code_dict import *
 from py_oa.utils.common import create_token, login_required
 from settings import METHODS
-from flask import request, jsonify, current_app
+from flask import request
 
 user = Blueprint("user", __name__)
 
+
+@user.route('/user/logout', methods=METHODS)
+def logout():
+    return Succ200.to_dict()
 
 
 @user.route('/user/login', methods=METHODS)
@@ -47,9 +51,7 @@ def login():
 @login_required
 def info(u_id):
     res_dir = request.get_json()
-    return {'code':200,'data':
-        {'roles': ['admin'],
-        'introduction': 'I am a super administrator',
-        'avatar': 'https://wpimg.wallstcn.com/f778738c-e4f8-4870-b634-56703b4acafe.gif',
-        'name': 'Super Admin'}
-    }
+    return {'code': 200, 'data': dict(roles=['admin'], introduction='I am a super administrator',
+                                      avatar='https://wpimg.wallstcn.com/f778738c-e4f8-4870-b634-56703b4acafe.gif',
+                                      name='IFCZT')
+            }
