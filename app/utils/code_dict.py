@@ -56,3 +56,13 @@ class Error405(CodeDict):
     code = 405
     msg = '宣传编号不存在，请与上级核实。'
     pass
+
+
+class Error406(CodeDict):
+    code = 406
+    msg = '订单不存在或是没有权限删除'
+
+
+class Error407(CodeDict):
+    code = 407
+    msg = '没有找到该快递'

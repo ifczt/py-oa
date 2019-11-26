@@ -1,3 +1,5 @@
+# -*- coding: UTF-8 -*-
+
 DIALECT = 'mysql'
 DRIVER = 'pymysql'
 USERNAME = 'ifczt'
@@ -12,6 +14,15 @@ SQLALCHEMY_DATABASE_URI = '{}+{}://{}:{}@{}:{}/{}?charset=utf8'.format(
 SQLALCHEMY_COMMIT_ON_TEARDOWN = True
 SQLALCHEMY_TRACK_MODIFICATIONS = True
 
-METHODS = ['POST','GET']
+METHODS = ['POST', 'GET']
 
 SECRET_KEY = 'IFCZT900308'
+
+DELIVERY_STATE = ['未发货', '已签收', '换货', '退货', '在投', '再投', '问题件', '取消']
+
+INPUT_STAFF = {}
+
+EXPRESS_NAME = {}
+
+PRODUCT_LIST = {}
+

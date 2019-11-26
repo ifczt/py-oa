@@ -6,6 +6,8 @@ db = SQLAlchemy()
 if db:
     from .api.users import user
     from .api.orders import order
+    from .api.express import express
+    from .api.products import product
 
 
 def create_app():
@@ -21,4 +23,6 @@ def create_app():
     db.init_app(app)
     app.register_blueprint(user)
     app.register_blueprint(order)
+    app.register_blueprint(express)
+    app.register_blueprint(product)
     return app

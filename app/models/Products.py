@@ -1,4 +1,4 @@
-from py_oa import db
+from app import db
 
 Base = db.Model
 
@@ -9,7 +9,7 @@ class Products(Base):
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(16))
     sub_product = db.Column(db.String(255))
-    price = db.Column(db.Numeric(10))
+    price = db.Column(db.Integer)
 
     def to_dict(self):
         model_dict = dict(self.__dict__)

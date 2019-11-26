@@ -1,4 +1,4 @@
-from py_oa import db
+from app import db
 
 Base = db.Model
 

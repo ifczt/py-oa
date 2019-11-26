@@ -1,9 +1,9 @@
 from flask import Blueprint, request, render_template, jsonify
 
-from py_oa.models.Users import Users
-from py_oa.utils.code_dict import *
-from py_oa.utils.common import create_token, login_required
-from settings import METHODS
+from app.models.Users import Users
+from app.utils.code_dict import *
+from app.utils.common import create_token, login_required
+from settings import METHODS, INPUT_STAFF
 from flask import request
 
 user = Blueprint("user", __name__)
@@ -55,3 +55,10 @@ def info(u_id):
                                       avatar='https://wpimg.wallstcn.com/f778738c-e4f8-4870-b634-56703b4acafe.gif',
                                       name='IFCZT')
             }
+
+
+def get_user_name(u_id):
+    if u_id not in INPUT_STAFF:
+        user_info = Users.query.filter_by(u_id=u_id).first()
+        INPUT_STAFF[u_id] = user_info.username
+    return INPUT_STAFF[u_id]

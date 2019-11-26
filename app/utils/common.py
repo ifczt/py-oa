@@ -1,7 +1,7 @@
 from flask import request, jsonify, current_app
 from itsdangerous import TimedJSONWebSignatureSerializer as Serializer
 import functools
-from py_oa.utils.code_dict import Error410, Error404
+from app.utils.code_dict import Error410, Error404
 from settings import SECRET_KEY
 
 
