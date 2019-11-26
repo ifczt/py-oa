@@ -1,7 +1,6 @@
-import app
-app = app.create_app()
+import py_oa
+app = py_oa.create_app()
 
 
 if __name__ == '__main__':
-    app.run(host='192.168.1.38')
-
+    app.run(host='0.0.0.0', port=5000)
