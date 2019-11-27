@@ -2,7 +2,6 @@ from app import db
 
 Base = db.Model
 
-
 class Express(Base):
     __tablename__ = "express_info"
     __table_args__ = {"useexisting": True}

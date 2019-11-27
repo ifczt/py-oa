@@ -25,7 +25,8 @@ def order_list(u_id):
     items = Orders.query.filter_by(input_staff=u_id).all()
     data = {'items': [], 'total': Orders.query.filter_by(input_staff=u_id).count()}
     for item in items:
-        item = to_html_list_data_handle(item.to_dict(), u_id)
+        item = item.to_dict()
+        item['input_staff'] = get_user_name(item['input_staff'] or u_id)
         data['items'].append(item)
     Succ200.data = data
     return Succ200.to_dict()
@@ -33,14 +34,8 @@ def order_list(u_id):
 
 # 列表数据插入前处理
 def list_data_handle(data, u_id, is_input=True):
-    if 'area' in data and data['area']:
-        data['province'] = data['area'][0]
-        if len(data['area']) > 1:
-            data['city'] = data['area'][1]
-        if len(data['area']) > 2:
-            data['area'] = data['area'][2]
-    else:
-        del data['area']
+    print(data)
+
     # 录入员转换为u_id 传进来的是name
     if 'input_staff' in data:
         if is_input:
@@ -55,26 +50,11 @@ def list_data_handle(data, u_id, is_input=True):
     else:
         if 'input_time' in data:
             del data['input_time']
-        data['delivery_state'] = DELIVERY_STATE.index(data['delivery_state'])
+        # data['delivery_state'] = DELIVERY_STATE.index(data['delivery_state'])
         data['update_time'] = time.strftime("%Y-%m-%d %H:%M:%S", time.localtime())
         data['update_staff'] = u_id
     if 'id' in data and is_input:
         del data['id']
-    return data
-
-
-# 列表数据返回前处理
-def to_html_list_data_handle(data, u_id):
-    if 'delivery_state' in data:
-        data['delivery_state'] = DELIVERY_STATE[int(data['delivery_state'] if data['delivery_state'] else 0)]
-    if 'input_staff' in data and data['input_staff']:
-        data['input_staff'] = get_user_name(data['input_staff'])
-    else:
-        data['input_staff'] = get_user_name(u_id)
-    if 'delivery' in data:
-        data['delivery'] = get_express_name(data['delivery'])
-    if 'buy_product' in data:
-        data['buy_product'] = get_product_name(data['buy_product'])
     return data
 
 

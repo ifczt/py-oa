@@ -2,7 +2,6 @@ from app import db
 
 Base = db.Model
 
-
 class Orders(Base):
     __tablename__ = "order_info"
     __table_args__ = {"useexisting": True}

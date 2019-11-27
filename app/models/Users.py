@@ -3,7 +3,6 @@ from app import db
 
 Base = db.Model
 
-
 class Users(Base):
     __tablename__ = "user_info"
     __table_args__ = {"useexisting": True}

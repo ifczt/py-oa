@@ -2,10 +2,14 @@
 
 DIALECT = 'mysql'
 DRIVER = 'pymysql'
-USERNAME = 'ifczt'
-PASSWORD = 'ifczt'
-HOST = '112.74.59.83'
-PORT = '3333'
+# USERNAME = 'ifczt'
+# PASSWORD = 'ifczt'
+# HOST = '112.74.59.83'
+# PORT = '3333'
+USERNAME = 'root'
+PASSWORD = '123123'
+HOST = '127.0.0.1'
+PORT = '3306'
 DATABASE = 'oa'
 
 SQLALCHEMY_DATABASE_URI = '{}+{}://{}:{}@{}:{}/{}?charset=utf8'.format(
