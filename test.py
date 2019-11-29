@@ -1,1 +1,2 @@
-print("" or 2)
+POWER_ROLES = ['IFCZT', 'SUPER_ADMIN', 'ADMIN', 'FINANCE', 'PUBLICIST', 'INPUT_STAFF']
+print(type(POWER_ROLES[0:4]))

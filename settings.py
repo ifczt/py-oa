@@ -29,4 +29,7 @@ INPUT_STAFF = {}
 EXPRESS_NAME = {}
 
 PRODUCT_LIST = {}
+#                          上帝        超级管理员      管理员      财务          加盟商            电销
+POWER_ROLES = ['IFCZT', 'SUPER_ADMIN', 'ADMIN', 'FINANCE', 'PUBLICIST', 'INPUT_STAFF']
 
+CAN_SEE_ALL_ORDERS = POWER_ROLES[0:4]

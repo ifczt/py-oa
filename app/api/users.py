@@ -57,8 +57,12 @@ def info(u_id):
             }
 
 
+# 获取用户名
 def get_user_name(u_id):
     if u_id not in INPUT_STAFF:
         user_info = Users.query.filter_by(u_id=u_id).first()
-        INPUT_STAFF[u_id] = user_info.username
+        if user_info:
+            INPUT_STAFF[u_id] = user_info.username
+        else:
+            return '完犊子，出错了 - -#'
     return INPUT_STAFF[u_id]
