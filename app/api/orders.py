@@ -1,15 +1,16 @@
 # -*- coding: UTF-8 -*-
 import time
+
 from flask import Blueprint, request
-from api.express import get_express_name
-from api.products import get_product_name
+from sqlalchemy.sql import and_
+
 from api.users import get_user_name
 from app import db
 from app.models.Orders import Orders
-from app.utils.code_dict import Succ200, Error405
+from app.utils.code_dict import Succ200, Error405, Error406
 from app.utils.common import login_required
-from settings import METHODS, DELIVERY_STATE
-from utils.code_dict import Error406
+from models.Users import Users
+from settings import METHODS, CAN_SEE_ALL_ORDERS, POWER_ROLES
 
 order = Blueprint("order", __name__)
 
@@ -22,10 +23,21 @@ def order_list(u_id):
     :param u_id:
     :return: items
     """
-    items = Orders.query.filter_by(input_staff=u_id).all()
-    data = {'items': [], 'total': Orders.query.filter_by(input_staff=u_id).count()}
+    res_dir = request.get_json()
+    page_index = res_dir.get('page')  # 页数
+    limit = res_dir.get('limit')  # 一页多少条
+
+    if 'manage' in res_dir and res_dir.get('manage'):  # 管理页面请求拦截
+        search_var(res_dir)
+        items = Orders.query.filter(get_safety_list(**res_dir, u_id=u_id)).limit(limit).offset((page_index - 1) * limit)
+        total = Orders.query.filter(get_safety_list(**res_dir, u_id=u_id)).count()
+    else:
+        items = Orders.query.filter_by(input_staff=u_id).limit(limit).offset((page_index - 1) * limit)
+        total = Orders.query.filter_by(input_staff=u_id).count()
+    data = {'items': [], 'total': total}
     for item in items:
-        item = to_html_list_data_handle(item.to_dict(), u_id)
+        item = item.to_dict()
+        item['input_staff'] = get_user_name(item['input_staff'] or u_id)
         data['items'].append(item)
     Succ200.data = data
     return Succ200.to_dict()
@@ -33,14 +45,6 @@ def order_list(u_id):
 
 # 列表数据插入前处理
 def list_data_handle(data, u_id, is_input=True):
-    if 'area' in data and data['area']:
-        data['province'] = data['area'][0]
-        if len(data['area']) > 1:
-            data['city'] = data['area'][1]
-        if len(data['area']) > 2:
-            data['area'] = data['area'][2]
-    else:
-        del data['area']
     # 录入员转换为u_id 传进来的是name
     if 'input_staff' in data:
         if is_input:
@@ -55,26 +59,10 @@ def list_data_handle(data, u_id, is_input=True):
     else:
         if 'input_time' in data:
             del data['input_time']
-        data['delivery_state'] = DELIVERY_STATE.index(data['delivery_state'])
         data['update_time'] = time.strftime("%Y-%m-%d %H:%M:%S", time.localtime())
         data['update_staff'] = u_id
     if 'id' in data and is_input:
         del data['id']
-    return data
-
-
-# 列表数据返回前处理
-def to_html_list_data_handle(data, u_id):
-    if 'delivery_state' in data:
-        data['delivery_state'] = DELIVERY_STATE[int(data['delivery_state'] if data['delivery_state'] else 0)]
-    if 'input_staff' in data and data['input_staff']:
-        data['input_staff'] = get_user_name(data['input_staff'])
-    else:
-        data['input_staff'] = get_user_name(u_id)
-    if 'delivery' in data:
-        data['delivery'] = get_express_name(data['delivery'])
-    if 'buy_product' in data:
-        data['buy_product'] = get_product_name(data['buy_product'])
     return data
 
 
@@ -103,7 +91,6 @@ def update_list(u_id):
     :return: code_dict
     """
     res_dir = list_data_handle(request.get_json(), u_id, False)
-    print(res_dir)
     _order = Orders.query.filter_by(id=res_dir.get('id'), input_staff=u_id).update(res_dir)
     db.session.flush()
     db.session.commit()
@@ -145,3 +132,54 @@ def ppg_id_info(u_id):
         return Error405.to_dict()
     Succ200.data = a[ppg_id]
     return Succ200.to_dict()
+
+
+# 搜索条件去空值
+def search_var(data):
+    del data['page']
+    del data['limit']
+    del data['manage']
+    return data
+
+
+def get_safety_list(courier_code, delivery_state, buy_product, input_staff,
+                    area, time_slot_value, type_time_slot, delivery, phone, parent, u_id):
+    condition = (Orders.id > 0)
+    power = Users.query.filter_by(u_id=u_id).first().power
+    if power not in CAN_SEE_ALL_ORDERS:  # 如果不在可以看到所有订单的群组里 就添加搜索条件
+        if power == POWER_ROLES[4]:  # 如果是加盟商的话就添加宣传编号ppg_id[...多个]搜索条件
+            pass
+        else:  # 否则就是电销员 添加input_staff的搜索条件
+            condition = and_(condition, Orders.input_staff == u_id)
+    if courier_code:  # 快递单号
+        condition = and_(condition, Orders.courier_code.ilike(add_like(courier_code)))
+        return condition
+    if buy_product and type(buy_product) is list:  # 购买产品
+        condition = and_(condition, Orders.buy_product.in_(buy_product))
+    if delivery_state and type(delivery_state) is list:  # 物流状态
+        condition = and_(condition, Orders.delivery_state.in_(delivery_state))
+    if delivery and type(delivery) is list:  # 派送方式
+        condition = and_(condition, Orders.delivery.in_(delivery))
+    if area and type(area) is list:  # 省市区查询
+        if area[0]:  # 省
+            condition = and_(condition, Orders.province == area[0])
+            if area[1]:  # 市
+                condition = and_(condition, Orders.city == area[1])
+                if area[2]:  # 区
+                    condition = and_(condition, Orders.area == area[2])
+    if phone:
+        condition = and_(condition, Orders.phone == phone)
+    if parent:
+        condition = and_(condition, Orders.parent == parent)
+    if input_staff:
+        condition = and_(condition, Orders.input_staff == input_staff)
+    if type_time_slot:
+        if type_time_slot == '1':
+            condition = and_(condition, Orders.delivery_time.between(time_slot_value[0], time_slot_value[1]))
+        if type_time_slot == '4':
+            condition = and_(condition, Orders.input_time.between(time_slot_value[0], time_slot_value[1]))
+    return condition
+
+
+def add_like(val):
+    return '%' + val + '%'

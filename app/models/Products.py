@@ -2,7 +2,6 @@ from app import db
 
 Base = db.Model
 
-
 class Products(Base):
     __tablename__ = "product_info"
     __table_args__ = {"useexisting": True}

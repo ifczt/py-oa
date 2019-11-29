@@ -2,10 +2,14 @@
 
 DIALECT = 'mysql'
 DRIVER = 'pymysql'
-USERNAME = 'ifczt'
-PASSWORD = 'ifczt'
-HOST = '112.74.59.83'
-PORT = '3333'
+# USERNAME = 'ifczt'
+# PASSWORD = 'ifczt'
+# HOST = '112.74.59.83'
+# PORT = '3333'
+USERNAME = 'root'
+PASSWORD = '123123'
+HOST = '127.0.0.1'
+PORT = '3306'
 DATABASE = 'oa'
 
 SQLALCHEMY_DATABASE_URI = '{}+{}://{}:{}@{}:{}/{}?charset=utf8'.format(
@@ -25,4 +29,7 @@ INPUT_STAFF = {}
 EXPRESS_NAME = {}
 
 PRODUCT_LIST = {}
+#                          上帝        超级管理员      管理员      财务          加盟商            电销
+POWER_ROLES = ['IFCZT', 'SUPER_ADMIN', 'ADMIN', 'FINANCE', 'PUBLICIST', 'INPUT_STAFF']
 
+CAN_SEE_ALL_ORDERS = POWER_ROLES[0:4]

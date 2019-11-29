@@ -3,7 +3,6 @@ from app import db
 
 Base = db.Model
 
-
 class Users(Base):
     __tablename__ = "user_info"
     __table_args__ = {"useexisting": True}
@@ -11,6 +10,7 @@ class Users(Base):
     u_id = db.Column(db.String(64))
     username = db.Column(db.String(32))
     _password = db.Column("password", db.String(128))
+    power = db.Column(db.String(8))
 
     @property
     def password(self):
