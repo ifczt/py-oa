@@ -6,7 +6,6 @@ class CodeDict(Exception):
     @classmethod
     def to_dict(cls, error=None):
         return dict(msg=cls.msg, code=cls.code, data=cls.data)
-
     pass
 
 
@@ -66,3 +65,13 @@ class Error406(CodeDict):
 class Error407(CodeDict):
     code = 407
     msg = '没有找到该快递'
+
+
+class Error408(CodeDict):
+    code = 408
+    msg = '权限不足'
+
+
+class Error409(CodeDict):
+    code = 409
+    msg = '完犊子，出错了 - -#'

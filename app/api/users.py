@@ -40,7 +40,7 @@ def login():
         return Error402.to_dict()
 
     # 获取用户id，传入生成token的方法，并接收返回的token
-    u = {'u_id': user_info.u_id}
+    u = {'u_id': user_info.u_id, 'power': user_info.power}
     token = create_token(u)
     Succ200.data = {'token': token}
     # 把token返回给前端
@@ -64,5 +64,5 @@ def get_user_name(u_id):
         if user_info:
             INPUT_STAFF[u_id] = user_info.username
         else:
-            return '完犊子，出错了 - -#'
+            return Error409.msg
     return INPUT_STAFF[u_id]

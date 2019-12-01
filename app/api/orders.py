@@ -11,26 +11,29 @@ from app.utils.code_dict import Succ200, Error405, Error406
 from app.utils.common import login_required
 from models.Users import Users
 from settings import METHODS, CAN_SEE_ALL_ORDERS, POWER_ROLES
+from utils.code_dict import Error409
 
 order = Blueprint("order", __name__)
 
 
 @order.route('/order/list', methods=METHODS)
 @login_required
-def order_list(u_id):
+def order_list(token):
     """
     获取订单列表
-    :param u_id:
+    :param token:
     :return: items
     """
+    u_id = token['u_id']
     res_dir = request.get_json()
     page_index = res_dir.get('page')  # 页数
     limit = res_dir.get('limit')  # 一页多少条
 
     if 'manage' in res_dir and res_dir.get('manage'):  # 管理页面请求拦截
         search_var(res_dir)
-        items = Orders.query.filter(get_safety_list(**res_dir, u_id=u_id)).limit(limit).offset((page_index - 1) * limit)
-        total = Orders.query.filter(get_safety_list(**res_dir, u_id=u_id)).count()
+        items = Orders.query.filter(get_safety_list(**res_dir, token=token)).limit(limit).offset(
+            (page_index - 1) * limit)
+        total = Orders.query.filter(get_safety_list(**res_dir, token=token)).count()
     else:
         items = Orders.query.filter_by(input_staff=u_id).limit(limit).offset((page_index - 1) * limit)
         total = Orders.query.filter_by(input_staff=u_id).count()
@@ -68,11 +71,12 @@ def list_data_handle(data, u_id, is_input=True):
 
 @order.route('/order/input', methods=METHODS)
 @login_required
-def order_input(u_id):
+def order_input(token):
     """
     订单录入
     :return: {code}
     """
+    u_id = token['u_id']
     res_dir = list_data_handle(request.get_json(), u_id)
     _order = Orders(**res_dir)
     db.session.add(_order)
@@ -84,12 +88,13 @@ def order_input(u_id):
 
 @order.route('/order/update_list', methods=METHODS)
 @login_required
-def update_list(u_id):
+def update_list(token):
     """
     更新订单
-    :param u_id:
+    :param token:
     :return: code_dict
     """
+    u_id = token['u_id']
     res_dir = list_data_handle(request.get_json(), u_id, False)
     _order = Orders.query.filter_by(id=res_dir.get('id'), input_staff=u_id).update(res_dir)
     db.session.flush()
@@ -100,15 +105,20 @@ def update_list(u_id):
 
 @order.route('/order/del_list', methods=METHODS)
 @login_required
-def del_list(u_id):
+def del_list(token):
     """
     删除订单
-    :param u_id:
+    :param token:
     :return: code_dict
     """
     res_dir = request.get_json()
     o_id = res_dir.get('id')
-    _order = Orders.query.filter_by(id=o_id, input_staff=u_id).first()
+    power = token['power']
+    u_id = token['u_id']
+    if power not in CAN_SEE_ALL_ORDERS:  # 如果不在可以看到所有订单的群组里 就添加搜索条件
+        _order = Orders.query.filter_by(id=o_id, input_staff=u_id).first()
+    else:
+        _order = Orders.query.filter_by(id=o_id).first()
     if not _order:
         return Error406.to_dict()
     db.session.delete(_order)
@@ -117,12 +127,28 @@ def del_list(u_id):
     return Succ200.to_dict()
 
 
+@order.route('/order/apply_discount_state_change', methods=METHODS)
+@login_required
+def apply_discount_state_change(token):
+    power = token['power']
+    res_dir = request.get_json()
+    if power in CAN_SEE_ALL_ORDERS:
+        _order = Orders.query.filter_by(id=res_dir.get('id')).update({
+            'apply_discount_state': res_dir['apply_discount_state']})
+        db.session.flush()
+        db.session.commit()
+    else:
+        return Error409.to_dict()
+    Succ200.data = None
+    return Succ200.to_dict()
+
+
 @order.route('/order/ppg_id_info', methods=METHODS)
 @login_required
-def ppg_id_info(u_id):
+def ppg_id_info(token):
     """
     宣传编号信息
-    :param u_id:
+    :param token:
     :return: {学校,宣传人}
     """
     a = {'123456': {'school': '好学校', 'publicist': '陈大海'}, '456321': {'school': '的东西学校', 'publicist': '陈大海'}}
@@ -143,9 +169,10 @@ def search_var(data):
 
 
 def get_safety_list(courier_code, delivery_state, buy_product, input_staff,
-                    area, time_slot_value, type_time_slot, delivery, phone, parent, u_id):
+                    area, time_slot_value, type_time_slot, delivery, phone, parent, token):
+    u_id = token['u_id']
+    power = token['power']
     condition = (Orders.id > 0)
-    power = Users.query.filter_by(u_id=u_id).first().power
     if power not in CAN_SEE_ALL_ORDERS:  # 如果不在可以看到所有订单的群组里 就添加搜索条件
         if power == POWER_ROLES[4]:  # 如果是加盟商的话就添加宣传编号ppg_id[...多个]搜索条件
             pass

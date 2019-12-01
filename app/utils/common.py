@@ -27,11 +27,11 @@ def login_required(api_func):
             # 没接收的到token,给前端抛出错误
             return Error404.to_dict()
         s = Serializer(SECRET_KEY)
+        # noinspection PyBroadException
         try:
             u_id = s.loads(token)['u_id']
+            power = s.loads(token)['power']
         except Exception:
             return Error410.to_dict()
-
-        return api_func(u_id, **kwargs)
-
+        return api_func({'u_id': u_id, 'power': power}, **kwargs)
     return verify_token
