@@ -3,7 +3,6 @@ import time
 
 from flask import Blueprint, request
 from sqlalchemy.sql import and_
-
 from api.users import get_user_name
 from app import db
 from app.models.Orders import Orders
@@ -31,16 +30,16 @@ def order_list(token):
 
     if 'manage' in res_dir and res_dir.get('manage'):  # 管理页面请求拦截
         search_var(res_dir)
-        items = Orders.query.filter(get_safety_list(**res_dir, token=token)).limit(limit).offset(
-            (page_index - 1) * limit)
-        total = Orders.query.filter(get_safety_list(**res_dir, token=token)).count()
+        sql = Orders.query.filter(get_safety_list(**res_dir, token=token))
     else:
-        items = Orders.query.filter_by(input_staff=u_id).limit(limit).offset((page_index - 1) * limit)
-        total = Orders.query.filter_by(input_staff=u_id).count()
+        sql = Orders.query.filter_by(input_staff=u_id)
+    items = sql.limit(limit).offset((page_index - 1) * limit)
+    total = sql.count()
     data = {'items': [], 'total': total}
     for item in items:
         item = item.to_dict()
         item['input_staff'] = get_user_name(item['input_staff'] or u_id)
+        item['id'] = str(item['id']).zfill(6)
         data['items'].append(item)
     Succ200.data = data
     return Succ200.to_dict()
@@ -95,8 +94,12 @@ def update_list(token):
     :return: code_dict
     """
     u_id = token['u_id']
+    power = token['power']
     res_dir = list_data_handle(request.get_json(), u_id, False)
-    _order = Orders.query.filter_by(id=res_dir.get('id'), input_staff=u_id).update(res_dir)
+    if power not in CAN_SEE_ALL_ORDERS:
+        _order = Orders.query.filter_by(id=res_dir.get('id'), input_staff=u_id).update(res_dir)
+    else:
+        _order = Orders.query.filter_by(id=res_dir.get('id')).update(res_dir)
     db.session.flush()
     db.session.commit()
     Succ200.data = None
@@ -134,7 +137,8 @@ def apply_discount_state_change(token):
     res_dir = request.get_json()
     if power in CAN_SEE_ALL_ORDERS:
         _order = Orders.query.filter_by(id=res_dir.get('id')).update({
-            'apply_discount_state': res_dir['apply_discount_state']})
+            'apply_discount_state': res_dir['apply_discount_state'],
+            'price': res_dir['price']})
         db.session.flush()
         db.session.commit()
     else:

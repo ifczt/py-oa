@@ -1,6 +1,8 @@
 from flask import Flask
 from flask_cors import CORS
 from flask_sqlalchemy import SQLAlchemy
+
+
 from settings import SQLALCHEMY_DATABASE_URI
 db = SQLAlchemy()
 if db:
@@ -8,6 +10,9 @@ if db:
     from .api.orders import order
     from .api.express import express
     from .api.products import product
+    from .api.territory import territory
+    from .api.promotion import promotion
+    from .api.school import school
 
 
 def create_app():
@@ -25,4 +30,7 @@ def create_app():
     app.register_blueprint(order)
     app.register_blueprint(express)
     app.register_blueprint(product)
+    app.register_blueprint(territory)
+    app.register_blueprint(promotion)
+    app.register_blueprint(school)
     return app

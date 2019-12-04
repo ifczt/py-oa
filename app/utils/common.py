@@ -1,6 +1,8 @@
-from flask import request, jsonify, current_app
-from itsdangerous import TimedJSONWebSignatureSerializer as Serializer
 import functools
+
+from flask import request
+from itsdangerous import TimedJSONWebSignatureSerializer as Serializer
+
 from app.utils.code_dict import Error410, Error404
 from settings import SECRET_KEY
 
@@ -31,7 +33,9 @@ def login_required(api_func):
         try:
             u_id = s.loads(token)['u_id']
             power = s.loads(token)['power']
+            name = s.loads(token)['name']
         except Exception:
             return Error410.to_dict()
-        return api_func({'u_id': u_id, 'power': power}, **kwargs)
+        return api_func({'u_id': u_id, 'power': power, 'name': name}, **kwargs)
+
     return verify_token

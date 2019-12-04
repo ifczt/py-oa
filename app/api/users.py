@@ -1,10 +1,12 @@
-from flask import Blueprint, request, render_template, jsonify
+import random
+
+from flask import Blueprint
+from flask import request
 
 from app.models.Users import Users
 from app.utils.code_dict import *
 from app.utils.common import create_token, login_required
-from settings import METHODS, INPUT_STAFF
-from flask import request
+from settings import METHODS, INPUT_STAFF, POWER_INTRODUCTION
 
 user = Blueprint("user", __name__)
 
@@ -40,7 +42,7 @@ def login():
         return Error402.to_dict()
 
     # 获取用户id，传入生成token的方法，并接收返回的token
-    u = {'u_id': user_info.u_id, 'power': user_info.power}
+    u = {'u_id': user_info.u_id, 'power': user_info.power, 'name': user_info.username}
     token = create_token(u)
     Succ200.data = {'token': token}
     # 把token返回给前端
@@ -49,12 +51,14 @@ def login():
 
 @user.route('/user/info', methods=METHODS)
 @login_required
-def info(u_id):
-    res_dir = request.get_json()
-    return {'code': 200, 'data': dict(roles=['admin'], introduction='I am a super administrator',
-                                      avatar='https://wpimg.wallstcn.com/f778738c-e4f8-4870-b634-56703b4acafe.gif',
-                                      name='IFCZT')
-            }
+def info(token):
+    power = token['power']
+    name = token['name']
+    introduction = POWER_INTRODUCTION[power]
+    avatar = 'http://zn.net/img/avatar/{}.gif'.format(random.randint(1, 8))
+    data = {'roles': [power], 'introduction': introduction, 'name': name, 'avatar': avatar}
+    Succ200.data = data
+    return Succ200.to_dict()
 
 
 # 获取用户名
