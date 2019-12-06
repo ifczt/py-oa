@@ -24,7 +24,7 @@ SECRET_KEY = 'IFCZT900308'
 
 PUBLICIST_PROVINCE = []
 PUBLICIST_CITY = {}
-PUBLICIST_AREA = {}
+
 
 DELIVERY_STATE = ['未发货', '已签收', '换货', '退货', '在投', '再投', '问题件', '取消']
 

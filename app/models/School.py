@@ -11,7 +11,7 @@ class School(Base):
     school_name = db.Column(db.String(24))
     school_address = db.Column(db.String(255))
     entry_clerk = db.Column(db.String(255))  # 录入员
-    contact_info = db.Column(db.DateTime())  # 联系方式
+    contact_info = db.Column(db.String(1024))  # 联系方式
     input_time = db.Column(db.DateTime())  # 录入时间
     update_time = db.Column(db.DateTime())  # 更新时间
     update_clerk = db.Column(db.String(255))  # 更新员

@@ -4,30 +4,83 @@ from flask import request
 from sqlalchemy.sql import and_, or_
 
 from api.orders import add_like
+from app import db
 from app.models.School import School
 from app.utils.code_dict import *
 from app.utils.common import login_required
-from settings import METHODS, SCHOOL, PUBLICIST_PROVINCE, PUBLICIST_AREA, PUBLICIST_CITY
+from settings import METHODS, SCHOOL, PUBLICIST_PROVINCE, PUBLICIST_CITY
 
 school = Blueprint("school", __name__)
+
+
+@school.route('/school/edit', methods=METHODS)
+@login_required
+def edit(token):
+    res_dir = request.get_json()
+    if 'school_code' in res_dir:
+        school_code = res_dir['school_code']
+        del res_dir['school_code']
+    else:
+        return Error404.to_dict()
+    School.query.filter_by(school_code=school_code).update(res_dir)
+    db.session.flush()
+    db.session.commit()
+    return Succ200.to_dict()
 
 
 @school.route('/school/query_school', methods=METHODS)
 @login_required
 def query_school(token):
-    u_id = token['u_id']
+    """
+    联想搜索 只能搜索到其负责区域有效期内的学校
+    :param token:
+    :return:[{simple_name,region,school_code,province,city,area}....20]
+    """
     res_dir = request.get_json()
     lists = School.query.filter(and_(
         School.school_name.ilike(add_like(res_dir['value'])),
         get_safety_list())).limit(20).all()
-    print(School.query.filter(and_(
-        School.school_name.ilike(add_like(res_dir['value'])),
-        get_safety_list())))
     data = []
     for item in lists:
         data.append({
-            'value': item.simple_name, 'region': item.region, 'school_code': item.school_code,
-            'province': item.province, 'city': item.city, 'area': item.area})
+            'value': item.simple_name, 'region': item.region, 'school_code': item.school_code, 'quality': item.quality,
+            'province': item.province, 'city': item.city, 'area': item.area, 'school_address': item.school_address,
+            'contact_info': item.contact_info})
+    Succ200.data = data
+    return Succ200.to_dict()
+
+
+@school.route('/school/get_region_school', methods=METHODS)
+@login_required
+def get_region_school(token):
+    """
+    获取所负责区域的学校
+    :param token:
+    :return:
+    """
+    res_dir = request.get_json()
+    page_index = res_dir.get('page')  # 页数
+    limit = res_dir.get('limit')  # 一页多少条
+    province = res_dir.get('province')
+    city = res_dir.get('city')
+    quality = res_dir.get('quality')
+    school_name = res_dir.get('school_name')
+    condition = (School.id > 0)
+    if city:
+        condition = and_(condition, School.city == city)
+    elif province:
+        condition = and_(condition, School.province == province)
+    if quality:
+        condition = and_(condition, School.quality == quality)
+    if school_name:
+        condition = and_(condition, School.school_name.ilike(add_like(school_name)))
+    sql = School.query.filter(get_safety_list()).filter(condition)
+    items = sql.limit(limit).offset((page_index - 1) * limit)
+    total = sql.count()
+    data = {'items': [], 'total': total}
+    for item in items:
+        data['items'].append({'region': item.region, 'school_address': item.school_address,
+                              'school_name': item.school_name, 'quality': item.quality})
     Succ200.data = data
     return Succ200.to_dict()
 
@@ -43,18 +96,17 @@ def get_school_name(sid):
 
 
 def get_safety_list():
+    """
+    返回SQL语句 and ((sql) or (sql)) 一个for循环 为一个（sql）用or连接起来
+    :return: sql
+    """
     # condition = (School.province.in_(PUBLICIST_PROVINCE))
-    condition = or_(
-        and_(School.city.in_(PUBLICIST_CITY['340000']),
-                    School.province.in_(PUBLICIST_PROVINCE[0])),
-        (School.province.in_(PUBLICIST_PROVINCE[1]))
-        )
-    # for _p in PUBLICIST_PROVINCE:
-    #     if _p in PUBLICIST_CITY:
-    #         for _c in PUBLICIST_CITY:
-    #             if _c in PUBLICIST_AREA:
-    #                 condition_one = and_(School.area.in_(PUBLICIST_AREA[_c]))
-    #             else:
-    #                 condition_one = and_( School.city.in_(PUBLICIST_CITY[_p]))
-    #     condition = or_(condition, condition_one)
-    return condition
+    province = PUBLICIST_PROVINCE.copy()
+    city = PUBLICIST_CITY.copy()
+    good_c = None
+    for _p in province:
+        condition = (School.province == _p)
+        if _p in city:
+            condition = and_(condition, School.city.in_(city[_p]))
+        good_c = or_(good_c, condition) if good_c is not None else condition
+    return good_c
