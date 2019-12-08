@@ -1,4 +1,7 @@
 # -*- coding: UTF-8 -*-
+import time
+import uuid
+
 from flask import Blueprint
 from flask import request
 from sqlalchemy.sql import and_, or_
@@ -13,15 +16,37 @@ from settings import METHODS, SCHOOL, PUBLICIST_PROVINCE, PUBLICIST_CITY
 school = Blueprint("school", __name__)
 
 
+@school.route('/school/add', methods=METHODS)
+@login_required
+def add(token):
+    u_id = token['u_id']
+    res_dir = request.get_json()
+    if 'school_code' in res_dir:
+        return Error401.to_dict()
+    res_dir['school_code'] = str(uuid.uuid1())
+    res_dir['entry_clerk'] = u_id
+    res_dir['input_time'] = time.strftime("%Y-%m-%d %H:%M:%S", time.localtime())
+    res_dir['simple_name'] = res_dir['school_name']
+    _school = School(**res_dir)
+    db.session.add(_school)
+    db.session.flush()
+    db.session.commit()
+    Succ200.data = None
+    return Succ200.to_dict()
+
+
 @school.route('/school/edit', methods=METHODS)
 @login_required
 def edit(token):
+    u_id = token['u_id']
     res_dir = request.get_json()
     if 'school_code' in res_dir:
         school_code = res_dir['school_code']
         del res_dir['school_code']
     else:
         return Error404.to_dict()
+    res_dir['update_clerk'] = u_id
+    res_dir['update_time'] = time.strftime("%Y-%m-%d %H:%M:%S", time.localtime())
     School.query.filter_by(school_code=school_code).update(res_dir)
     db.session.flush()
     db.session.commit()

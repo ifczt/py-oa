@@ -9,7 +9,7 @@ class Orders(Base):
     id = db.Column(db.Integer, primary_key=True)
     ppg_id = db.Column(db.Integer)
     school = db.Column(db.String(32))
-    buy_product = db.Column(db.String(64))
+    buy_product = db.Column(db.Integer, db.ForeignKey('product_info.id'))  # …Ë÷√ProductµƒÕ‚º¸
     apply_discount_state = db.Column(db.Integer)
     price = db.Column(db.Float(10))
     pay_method = db.Column(db.String(16))
