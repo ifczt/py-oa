@@ -13,6 +13,7 @@ if db:
     from .api.territory import territory
     from .api.promotion import promotion
     from .api.school import school
+    from models import Login_info
 
 
 def create_app():

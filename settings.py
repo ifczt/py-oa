@@ -7,7 +7,7 @@ DRIVER = 'pymysql'
 # HOST = '112.74.59.83'
 # PORT = '3333'
 USERNAME = 'root'
-PASSWORD = 'ifczt'
+PASSWORD = '123123'
 HOST = '127.0.0.1'
 PORT = '3306'
 DATABASE = 'oa'
@@ -25,7 +25,6 @@ SECRET_KEY = 'IFCZT900308'
 PUBLICIST_PROVINCE = []
 PUBLICIST_CITY = {}
 
-
 DELIVERY_STATE = ['未发货', '已签收', '换货', '退货', '在投', '再投', '问题件', '取消']
 
 SCHOOL = {}
@@ -37,9 +36,23 @@ EXPRESS_NAME = {}
 PRODUCT_LIST = {}
 #                          上帝        超级管理员      管理员      财务          加盟商            电销
 POWER_ROLES = ['IFCZT', 'SUPER_ADMIN', 'ADMIN', 'FINANCE', 'PUBLICIST', 'INPUT_STAFF']
+POWER_ROLES_DICT = [{'name': '上帝', 'id': 'IFCZT'}, {'name': '超级管理员', 'id': 'SUPER_ADMIN'},
+                    {'name': '管理员', 'id': 'ADMIN'}, {'name': '财务', 'id': 'FINANCE'},
+                    {'name': '加盟商', 'id': 'PUBLICIST'}, {'name': '电销', 'id': 'INPUT_STAFF'}]
 POWER_INTRODUCTION = {
     'IFCZT': '上帝', 'SUPER_ADMIN': '超级管理员', 'ADMIN': '客服',
     'FINANCE': '财务', 'PUBLICIST': '加盟商', 'INPUT_STAFF': '电销'
 }
+IFCZT = POWER_ROLES[0]
+PUBLICIST = POWER_ROLES[4]  # 加盟商
+INSIDE = POWER_ROLES[0:4]  # 公司内部管理群组
+INSIDE_ADMIN = POWER_ROLES[0:2]  # 公司内部管理群组
+ADMIN = POWER_ROLES[0:5]  # 除了电销以为 都是管理者
+
 
 CAN_SEE_ALL_ORDERS = POWER_ROLES[0:4]
+CAN_MANAGER_USER = POWER_ROLES[0:1]
+CAN_EDIT_USER = POWER_ROLES[0:1]
+CAN_ADD_INPUT = POWER_ROLES[0:3]
+
+TIME_STR = '%Y-%m-%d %H:%M:%S'

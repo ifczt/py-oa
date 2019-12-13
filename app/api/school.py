@@ -11,14 +11,21 @@ from app import db
 from app.models.School import School
 from app.utils.code_dict import *
 from app.utils.common import login_required
-from settings import METHODS, SCHOOL, PUBLICIST_PROVINCE, PUBLICIST_CITY
+from settings import METHODS, SCHOOL, PUBLICIST_PROVINCE, PUBLICIST_CITY, PUBLICIST, CAN_SEE_ALL_ORDERS
+from utils.common import verify_param
 
 school = Blueprint("school", __name__)
 
 
 @school.route('/school/add', methods=METHODS)
-@login_required
+@login_required()
+@verify_param(['school_name', 'province', 'city', 'area', 'region'])
 def add(token):
+    """
+    添加学校
+    :param token:
+    :return:
+    """
     u_id = token['u_id']
     res_dir = request.get_json()
     if 'school_code' in res_dir:
@@ -36,25 +43,31 @@ def add(token):
 
 
 @school.route('/school/edit', methods=METHODS)
-@login_required
+@login_required(CAN_SEE_ALL_ORDERS)
+@verify_param(['school_code'])
 def edit(token):
     u_id = token['u_id']
     res_dir = request.get_json()
-    if 'school_code' in res_dir:
-        school_code = res_dir['school_code']
-        del res_dir['school_code']
-    else:
-        return Error404.to_dict()
+    school_code = res_dir['school_code']
+    del res_dir['school_code']
     res_dir['update_clerk'] = u_id
     res_dir['update_time'] = time.strftime("%Y-%m-%d %H:%M:%S", time.localtime())
-    School.query.filter_by(school_code=school_code).update(res_dir)
-    db.session.flush()
-    db.session.commit()
+    for item in list(res_dir.keys()):  # 把传进来为空的 不修改 去掉 以免空值覆盖
+        if not res_dir[item] and res_dir[item] is not 0:
+            del res_dir[item]
+    # noinspection PyBroadException
+    try:
+        School.query.filter_by(school_code=school_code).update(res_dir)
+        db.session.flush()
+        db.session.commit()
+    except Exception:
+        return Error409.to_dict()
     return Succ200.to_dict()
 
 
 @school.route('/school/query_school', methods=METHODS)
-@login_required
+@login_required(PUBLICIST)
+@verify_param(['value'])
 def query_school(token):
     """
     联想搜索 只能搜索到其负责区域有效期内的学校
@@ -76,7 +89,8 @@ def query_school(token):
 
 
 @school.route('/school/get_region_school', methods=METHODS)
-@login_required
+@login_required(PUBLICIST)
+@verify_param(['page', 'limit'])
 def get_region_school(token):
     """
     获取所负责区域的学校

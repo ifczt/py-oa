@@ -7,10 +7,10 @@ class Promotion(Base):
     __tablename__ = "promotion_info"
     __table_args__ = {"useexisting": True}
     id = db.Column(db.Integer, primary_key=True)
-    publicist_id = db.Column(db.String(64))  # 加盟商
+    publicist_id = db.Column(db.String(64), db.ForeignKey('user_info.u_id'))  # 加盟商 外键用户表U_ID
     sales_nums = db.Column(db.Integer)  # 是单数
     dosage = db.Column(db.Integer)  # 发放量
-    school_code = db.Column(db.String(32))
+    school_code = db.Column(db.String(32), db.ForeignKey('school_info.school_code'))  # 学校编号 外键学校信息表SCHOOL_CODE
     promotion_time = db.Column(db.DateTime())  # 宣传日期
     province = db.Column(db.String(24))
     city = db.Column(db.String(1024))

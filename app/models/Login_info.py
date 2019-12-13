@@ -3,13 +3,12 @@ from app import db
 Base = db.Model
 
 
-class Express(Base):
-    __tablename__ = "express_info"
+class Login_info(Base):
+    __tablename__ = "login_info"
     __table_args__ = {"useexisting": True}
     id = db.Column(db.Integer, primary_key=True)
-    name = db.Column(db.String(16))
-    freight = db.Column(db.Float(24))
-    active = db.Column(db.Integer, default=1)
+    u_id = db.Column(db.String(64), db.ForeignKey('user_info.u_id'))
+    login_time = db.Column(db.DateTime())
 
     def to_dict(self):
         model_dict = dict(self.__dict__)

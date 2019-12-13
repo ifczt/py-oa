@@ -75,3 +75,29 @@ class Error408(CodeDict):
 class Error409(CodeDict):
     code = 409
     msg = '完犊子，出错了 - -#'
+
+
+class Error4010(CodeDict):
+    code = 4010
+    msg = '密码不符合安全标准'
+
+
+class Error4011(CodeDict):
+    code = 4011
+    msg = '账号已禁用，如执意要登录，请联系管理员。'
+
+
+class Error4012(CodeDict):
+    code = 4012
+    msg = '有一个或多个账号数据错误或是不完整，请联系管理员'
+
+
+class Error4013(CodeDict):
+    code = 4013
+    msg = '你没事删除你自己干什么？'
+
+
+class Error4014(CodeDict):
+    code = 4014
+    msg = '找不到该POWER'
+

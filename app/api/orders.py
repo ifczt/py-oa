@@ -3,20 +3,23 @@ import time
 
 from flask import Blueprint, request
 from sqlalchemy.sql import and_
+
 from api.users import get_user_name
 from app import db
 from app.models.Orders import Orders
 from app.utils.code_dict import Succ200, Error405, Error406
 from app.utils.common import login_required
-from models.Users import Users
-from settings import METHODS, CAN_SEE_ALL_ORDERS, POWER_ROLES
+from models.Promotion import Promotion
+from settings import METHODS, CAN_SEE_ALL_ORDERS, POWER_ROLES, TIME_STR
 from utils.code_dict import Error409
+from utils.common import verify_param
 
 order = Blueprint("order", __name__)
 
 
 @order.route('/order/list', methods=METHODS)
-@login_required
+@login_required()
+@verify_param(['page', 'limit'])
 def order_list(token):
     """
     获取订单列表
@@ -33,14 +36,19 @@ def order_list(token):
         sql = Orders.query.filter(get_safety_list(**res_dir, token=token))
     else:
         sql = Orders.query.filter_by(input_staff=u_id)
-    items = sql.limit(limit).offset((page_index - 1) * limit)
-    total = sql.count()
+    # noinspection PyBroadException
+    try:
+        items = sql.limit(limit).offset((page_index - 1) * limit)
+        total = sql.count()
+    except Exception:
+        return Error409.to_dict()
     data = {'items': [], 'total': total}
     for item in items:
-        item = item.to_dict()
-        item['input_staff'] = get_user_name(item['input_staff'] or u_id)
-        item['id'] = str(item['id']).zfill(6)
-        data['items'].append(item)
+        dict_item = item.to_dict()
+        dict_item['input_staff'] = get_user_name(dict_item['input_staff'] or u_id)
+        dict_item['id'] = str(dict_item['id']).zfill(6)
+        dict_item['school'] = item.orders_school.school_name
+        data['items'].append(dict_item)
     Succ200.data = data
     return Succ200.to_dict()
 
@@ -57,19 +65,21 @@ def list_data_handle(data, u_id, is_input=True):
         # 物流状态 默认为0 未发货
         data['delivery_state'] = 0
         # 订单录入时间
-        data['input_time'] = time.strftime("%Y-%m-%d %H:%M:%S", time.localtime())
+        data['input_time'] = time.strftime(TIME_STR, time.localtime())
     else:
         if 'input_time' in data:
             del data['input_time']
-        data['update_time'] = time.strftime("%Y-%m-%d %H:%M:%S", time.localtime())
+        data['update_time'] = time.strftime(TIME_STR, time.localtime())
         data['update_staff'] = u_id
     if 'id' in data and is_input:
         del data['id']
+    if 'school' in data:
+        del data['school']
     return data
 
 
 @order.route('/order/input', methods=METHODS)
-@login_required
+@login_required()
 def order_input(token):
     """
     订单录入
@@ -77,16 +87,20 @@ def order_input(token):
     """
     u_id = token['u_id']
     res_dir = list_data_handle(request.get_json(), u_id)
-    _order = Orders(**res_dir)
-    db.session.add(_order)
-    db.session.flush()
-    Succ200.data = {'id': _order.id, 'delivery_state': '未发货'}
-    db.session.commit()
+    # noinspection PyBroadException
+    try:
+        _order = Orders(**res_dir)
+        db.session.add(_order)
+        db.session.flush()
+        db.session.commit()
+    except Exception:
+        return Error409.to_dict()
+    Succ200.data = {'id': str(_order.id).zfill(6), 'delivery_state': '未发货'}
     return Succ200.to_dict()
 
 
 @order.route('/order/update_list', methods=METHODS)
-@login_required
+@login_required()
 def update_list(token):
     """
     更新订单
@@ -96,18 +110,23 @@ def update_list(token):
     u_id = token['u_id']
     power = token['power']
     res_dir = list_data_handle(request.get_json(), u_id, False)
-    if power not in CAN_SEE_ALL_ORDERS:
-        _order = Orders.query.filter_by(id=res_dir.get('id'), input_staff=u_id).update(res_dir)
-    else:
-        _order = Orders.query.filter_by(id=res_dir.get('id')).update(res_dir)
-    db.session.flush()
-    db.session.commit()
+    # noinspection PyBroadException
+    try:
+        if power not in CAN_SEE_ALL_ORDERS:
+            _order = Orders.query.filter_by(id=res_dir.get('id'), input_staff=u_id).update(res_dir)
+        else:
+            _order = Orders.query.filter_by(id=res_dir.get('id')).update(res_dir)
+        db.session.flush()
+        db.session.commit()
+    except Exception:
+        return Error409.to_dict()
     Succ200.data = None
     return Succ200.to_dict()
 
 
 @order.route('/order/del_list', methods=METHODS)
-@login_required
+@login_required()
+@verify_param(['id'])
 def del_list(token):
     """
     删除订单
@@ -124,43 +143,57 @@ def del_list(token):
         _order = Orders.query.filter_by(id=o_id).first()
     if not _order:
         return Error406.to_dict()
-    db.session.delete(_order)
-    db.session.commit()
+    # noinspection PyBroadException
+    try:
+        db.session.delete(_order)
+        db.session.commit()
+    except Exception:
+        return Error409.to_dict()
     Succ200.data = None
     return Succ200.to_dict()
 
 
 @order.route('/order/apply_discount_state_change', methods=METHODS)
-@login_required
+@login_required(CAN_SEE_ALL_ORDERS)
+@verify_param(['apply_discount_state','price'])
 def apply_discount_state_change(token):
     power = token['power']
     res_dir = request.get_json()
-    if power in CAN_SEE_ALL_ORDERS:
+    # noinspection PyBroadException
+    try:
         _order = Orders.query.filter_by(id=res_dir.get('id')).update({
-            'apply_discount_state': res_dir['apply_discount_state'],
-            'price': res_dir['price']})
+                'apply_discount_state': res_dir['apply_discount_state'],
+                'price': res_dir['price']})
         db.session.flush()
         db.session.commit()
-    else:
+    except Exception:
         return Error409.to_dict()
     Succ200.data = None
     return Succ200.to_dict()
 
 
 @order.route('/order/ppg_id_info', methods=METHODS)
-@login_required
+@login_required()
+@verify_param(['ppg_id'])
 def ppg_id_info(token):
     """
     宣传编号信息
     :param token:
     :return: {学校,宣传人}
     """
-    a = {'123456': {'school': '好学校', 'publicist': '陈大海'}, '456321': {'school': '的东西学校', 'publicist': '陈大海'}}
     res_dir = request.get_json()
     ppg_id = res_dir.get('ppg_id')
-    if ppg_id not in a:
+    # noinspection PyBroadException
+    try:
+        _promotion = Promotion.query.filter_by(id=ppg_id).first()
+    except Exception:
+        return Error409.to_dict()
+    if not _promotion:
         return Error405.to_dict()
-    Succ200.data = a[ppg_id]
+    if not _promotion.promotion_user or not _promotion.promotion_school:
+        return Error409.to_dict()
+    Succ200.data = {'school': _promotion.promotion_school.school_name, 'publicist': _promotion.promotion_user.username,
+                    'school_code': _promotion.promotion_school.school_code}
     return Succ200.to_dict()
 
 

@@ -22,6 +22,9 @@ class School(Base):
     simple_name = db.Column(db.String(64))  # 学校名称缩写
     quality = db.Column(db.String(8))  # 学校质量
 
+    promotion = db.relationship("Promotion", backref='promotion_school', lazy='dynamic')  # 学校宣传
+    orders = db.relationship("Orders", backref='orders_school', lazy='dynamic')  # 学校宣传
+
     def to_dict(self):
         model_dict = dict(self.__dict__)
         del model_dict['_sa_instance_state']
