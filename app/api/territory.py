@@ -8,7 +8,7 @@ from app import db
 from app.models.Territory import Territory
 from app.utils.code_dict import *
 from app.utils.common import login_required
-from settings import METHODS, PUBLICIST_PROVINCE, PUBLICIST_CITY, PUBLICIST, INSIDE_ADMIN
+from settings import METHODS, PUBLICIST, INSIDE_ADMIN
 from utils.common import verify_param
 
 territory = Blueprint("territory", __name__)
@@ -76,15 +76,14 @@ def get_province_region(token):
     :return: [{label,key}....]
     """
     u_id = token['u_id']
-    province = Territory.query.filter(and_(Territory.publicist_id == u_id, Territory.eff_time > time.localtime())).all()
+    # noinspection PyBroadException
+    try:
+        province = Territory.query.filter(
+            and_(Territory.publicist_id == u_id, Territory.eff_time > time.localtime())).all()
+    except Exception:
+        return Error409.to_dict()
     data = []
     for _p in province:
-        if _p.province not in PUBLICIST_PROVINCE:
-            PUBLICIST_PROVINCE.append(_p.province)
-            if _p.city:
-                if _p.province not in PUBLICIST_CITY:
-                    PUBLICIST_CITY[_p.province] = []
-                PUBLICIST_CITY[_p.province] = _p.city.split(',')
         data.append({'label': _p.province, 'key': _p.province})
     Succ200.data = data
     return Succ200.to_dict()
@@ -98,5 +97,13 @@ def get_region_all(token):
     :param token:
     :return:
     """
-    Succ200.data = {'province': PUBLICIST_PROVINCE, 'city': PUBLICIST_CITY}
+    u_id = token['u_id']
+    terr = Territory.query.filter(and_(Territory.publicist_id == u_id, Territory.eff_time > time.localtime())).all()
+    province = []
+    city = {}
+    for item in terr:
+        province.append(item.province)
+        if item.city:
+            city[item.province] = item.city.split(',')
+    Succ200.data = {'province': province, 'city': city}
     return Succ200.to_dict()

@@ -7,6 +7,7 @@ from flask import request
 from sqlalchemy.sql import and_, or_
 
 from api.orders import add_like
+from api.territory import get_region_all
 from app import db
 from app.models.School import School
 from app.utils.code_dict import *
@@ -140,8 +141,12 @@ def get_safety_list():
     :return: sql
     """
     # condition = (School.province.in_(PUBLICIST_PROVINCE))
-    province = PUBLICIST_PROVINCE.copy()
-    city = PUBLICIST_CITY.copy()
+    data = get_region_all(request)  # 调用URL接口
+    if data['code'] is not Succ200.code:
+        return data
+    data = data['data']
+    province = data['province']
+    city = data['city']
     good_c = None
     for _p in province:
         condition = (School.province == _p)
