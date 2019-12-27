@@ -1,9 +1,9 @@
 from flask import Flask
 from flask_cors import CORS
 from flask_sqlalchemy import SQLAlchemy
-
-
 from settings import SQLALCHEMY_DATABASE_URI
+
+# region 导入API
 db = SQLAlchemy()
 if db:
     from .api.users import user
@@ -13,7 +13,9 @@ if db:
     from .api.territory import territory
     from .api.promotion import promotion
     from .api.school import school
+    from .api.data_show import data_show
     from models import Login_info
+# endregion
 
 
 def create_app():
@@ -27,6 +29,7 @@ def create_app():
     app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
     # 初始化SQLAlchemy , 本质就是将以上的配置读取出来
     db.init_app(app)
+    # region 注入蓝图
     app.register_blueprint(user)
     app.register_blueprint(order)
     app.register_blueprint(express)
@@ -34,4 +37,6 @@ def create_app():
     app.register_blueprint(territory)
     app.register_blueprint(promotion)
     app.register_blueprint(school)
+    app.register_blueprint(data_show)
+    # endregion
     return app

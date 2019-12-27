@@ -10,6 +10,8 @@ class Products(Base):
     name = db.Column(db.String(16))
     sub_product = db.Column(db.String(255))
     price = db.Column(db.Integer)
+    convert = db.Column(db.Float)
+    cost = db.Column(db.Float)
     active = db.Column(db.Integer, default=1)
     orders = db.relationship("Orders", backref='product', lazy='dynamic')  # 关联订单表
 

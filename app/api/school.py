@@ -12,21 +12,17 @@ from app import db
 from app.models.School import School
 from app.utils.code_dict import *
 from app.utils.common import login_required
-from settings import METHODS, SCHOOL, PUBLICIST_PROVINCE, PUBLICIST_CITY, PUBLICIST, CAN_SEE_ALL_ORDERS
+from settings import METHODS, SCHOOL,  PUBLICIST, INSIDE
 from utils.common import verify_param
 
 school = Blueprint("school", __name__)
 
 
+# region 添加学校
 @school.route('/school/add', methods=METHODS)
 @login_required()
 @verify_param(['school_name', 'province', 'city', 'area', 'region'])
 def add(token):
-    """
-    添加学校
-    :param token:
-    :return:
-    """
     u_id = token['u_id']
     res_dir = request.get_json()
     if 'school_code' in res_dir:
@@ -41,10 +37,10 @@ def add(token):
     db.session.commit()
     Succ200.data = None
     return Succ200.to_dict()
-
-
+# endregion
+# region 编辑学校
 @school.route('/school/edit', methods=METHODS)
-@login_required(CAN_SEE_ALL_ORDERS)
+@login_required(INSIDE)
 @verify_param(['school_code'])
 def edit(token):
     u_id = token['u_id']
@@ -64,17 +60,12 @@ def edit(token):
     except Exception:
         return Error409.to_dict()
     return Succ200.to_dict()
-
-
+# endregion
+# region 联想搜索 只能搜索到其负责区域有效期内的学校
 @school.route('/school/query_school', methods=METHODS)
 @login_required(PUBLICIST)
 @verify_param(['value'])
 def query_school(token):
-    """
-    联想搜索 只能搜索到其负责区域有效期内的学校
-    :param token:
-    :return:[{simple_name,region,school_code,province,city,area}....20]
-    """
     res_dir = request.get_json()
     lists = School.query.filter(and_(
         School.school_name.ilike(add_like(res_dir['value'])),
@@ -87,17 +78,12 @@ def query_school(token):
             'contact_info': item.contact_info})
     Succ200.data = data
     return Succ200.to_dict()
-
-
+# endregion
+# region 获取所负责区域的学校
 @school.route('/school/get_region_school', methods=METHODS)
 @login_required(PUBLICIST)
 @verify_param(['page', 'limit'])
 def get_region_school(token):
-    """
-    获取所负责区域的学校
-    :param token:
-    :return:
-    """
     res_dir = request.get_json()
     page_index = res_dir.get('page')  # 页数
     limit = res_dir.get('limit')  # 一页多少条
@@ -123,8 +109,10 @@ def get_region_school(token):
                               'school_name': item.school_name, 'quality': item.quality})
     Succ200.data = data
     return Succ200.to_dict()
+# endregion
 
 
+# region 根据ID获取学校名字 （缓存函数）
 def get_school_name(sid):
     if sid not in SCHOOL:
         item = School.query.filter_by(school_code=sid).first()
@@ -133,13 +121,9 @@ def get_school_name(sid):
         else:
             return Error409.msg
     return SCHOOL[sid]
-
-
+# endregion
+# region SQL语句处理
 def get_safety_list():
-    """
-    返回SQL语句 and ((sql) or (sql)) 一个for循环 为一个（sql）用or连接起来
-    :return: sql
-    """
     # condition = (School.province.in_(PUBLICIST_PROVINCE))
     data = get_region_all(request)  # 调用URL接口
     if data['code'] is not Succ200.code:
@@ -154,3 +138,4 @@ def get_safety_list():
             condition = and_(condition, School.city.in_(city[_p]))
         good_c = or_(good_c, condition) if good_c is not None else condition
     return good_c
+# endregion

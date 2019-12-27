@@ -101,3 +101,23 @@ class Error4014(CodeDict):
     code = 4014
     msg = '找不到该POWER'
 
+class Error4015(CodeDict):
+    code = 4015
+    msg = '获取年度销售套数失败'
+
+class Error4016(CodeDict):
+    code = 4016
+    msg = '获取年度销售额失败'
+
+class Error4017(CodeDict):
+    code = 4017
+    msg = '获取今日销售套数失败'
+
+class Error4018(CodeDict):
+    code = 4018
+    msg = '获取今日问题件失败'
+
+
+class Error4019(CodeDict):
+    code = 4019
+    msg = '在POWER_SQL发现了一处错误'

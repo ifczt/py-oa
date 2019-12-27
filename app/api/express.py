@@ -11,29 +11,21 @@ from utils.common import login_required, verify_param
 express = Blueprint("express", __name__)
 
 
+# region 获取快递列表
 @express.route('/express_list', methods=METHODS)
 def express_list():
-    """
-    获取快递列表
-    :return: data=[{id,name,price}...]
-    """
     items = Express.query.filter_by(active=1).all()
     data = []
     for item in items:
         data.append(item.to_dict())
     Succ200.data = data
     return Succ200.to_dict()
-
-
+# endregion
+# region 添加快递公司
 @express.route('/express/creat', methods=METHODS)
 @login_required()
 @verify_param(['name'])
 def creat(token):
-    """
-    添加快递公司
-    :param token:
-    :return:
-    """
     res_dir = request.get_json()
     # noinspection PyBroadException
     try:
@@ -45,17 +37,12 @@ def creat(token):
         return Error409.to_dict()
     Succ200.data = {'id': _express.id, 'active': _express.active}
     return Succ200.to_dict()
-
-
+# endregion
+# region 是否激活快递公司
 @express.route('/express/active', methods=METHODS)
 @login_required(INSIDE)
 @verify_param(['id', 'bool'])
 def active(token):
-    """
-    是否激活快递公司
-    :param token:
-    :return:
-    """
     res_dir = request.get_json()
     e_id = res_dir['id']
     e_bool = res_dir['bool']
@@ -69,17 +56,12 @@ def active(token):
         return Error409.to_dict()
     Succ200.data = None
     return Succ200.to_dict()
-
-
+# endregion
+# region 删除快递公司
 @express.route('/express/del', methods=METHODS)
 @login_required(INSIDE)
 @verify_param(['id'])
 def del_express(token):
-    """
-    删除快递公司
-    :param token:
-    :return:
-    """
     res_dir = request.get_json()
     e_id = res_dir['id']
     # noinspection PyBroadException
@@ -91,8 +73,8 @@ def del_express(token):
         return Error409.to_dict()
     Succ200.data = None
     return Succ200.to_dict()
-
-
+# endregion
+# region 更新
 @express.route('/express/edit', methods=METHODS)
 @login_required()
 @verify_param(['id', 'name'])
@@ -109,8 +91,8 @@ def edit(token):
         return Error409.to_dict()
     Succ200.data = None
     return Succ200.to_dict()
-
-
+# endregion
+# region 获取快递名字 （非路由函数）
 def get_express_name(id):
     if id not in EXPRESS_NAME:
         express_info = Express.query.filter_by(id=id).first()
@@ -118,3 +100,4 @@ def get_express_name(id):
             return
         EXPRESS_NAME[id] = express_info.name
     return EXPRESS_NAME[id]
+# endregion

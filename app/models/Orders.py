@@ -27,10 +27,18 @@ class Orders(Base):
     delivery = db.Column(db.Integer)  # 派送方式
     delivery_time = db.Column(db.DateTime())  # 派送时间
     delivery_state = db.Column(db.Integer)
+    buy_num = db.Column(db.Integer)
     update_staff = db.Column(db.String(64))
     update_time = db.Column(db.DateTime())
     courier_code = db.Column(db.String(255))
-
+    courier_code_return = db.Column(db.String(255))
+    courier_code_relapse = db.Column(db.String(255))
+    remarks = db.Column(db.String(1024))
+    freight = db.Column(db.Float(10),default=0)
+    payment = db.Column(db.Float(10),default=0)
+    payment_state = db.Column(db.Integer,default=0)
+    refund_time = db.Column(db.DateTime())
+    promotion = db.relationship("Promotion", backref='promotion_orders', lazy='dynamic')  # 产品列表
     def to_dict(self):
         model_dict = dict(self.__dict__)
         del model_dict['_sa_instance_state']

@@ -15,23 +15,22 @@ from app.utils.code_dict import *
 from app.utils.common import create_token, login_required
 from models.Login_info import Login_info
 from settings import METHODS, INPUT_STAFF, POWER_INTRODUCTION, POWER_ROLES, POWER_ROLES_DICT, TIME_STR, INSIDE, IFCZT, \
-    PUBLICIST, ADMIN
+    PUBLICIST, ADMIN, INSIDE_ADMIN
 from utils.common import verify_param
 
 user = Blueprint("user", __name__)
 
 
+# region 退出登录 没啥用的接口
 @user.route('/user/logout', methods=METHODS)
 def logout():
     return Succ200.to_dict()
 
 
+# endregion
+# region 用户登录
 @user.route('/user/login', methods=METHODS)
 def login():
-    """
-    用户登录
-    :return: token
-    """
     res_dir = request.get_json()
     if res_dir is None:
         return Error404
@@ -39,11 +38,9 @@ def login():
     # 获取前端传过来的参数
     username = res_dir.get("username")
     password = res_dir.get("password")
-
     # 校验参数
     if not all([username, password]):
         return Error404
-
     # noinspection PyBroadException
     try:
         user_info = Users.query.filter_by(username=username).first()
@@ -69,14 +66,11 @@ def login():
     return Succ200.to_dict()
 
 
+# endregion
+# region 获取用户信息{roles:[],introduction:权限介绍 没啥用,name:名字,avatar:头像}
 @user.route('/user/info', methods=METHODS)
 @login_required()
 def info(token):
-    """
-    获取用户信息
-    :param token:
-    :return:
-    """
     power = token['power']
     name = token['name']
     # noinspection PyBroadException
@@ -90,6 +84,8 @@ def info(token):
     return Succ200.to_dict()
 
 
+# endregion
+# region 修改密码
 @user.route('/user/edit_password', methods=METHODS)
 @login_required()
 @verify_param(['password_old', 'password_new'])
@@ -114,33 +110,29 @@ def edit_password(token):
     return Succ200.to_dict()
 
 
+# endregion
+# region 获取用户可创建群组
 @user.route('/user/get_power_group', methods=METHODS)
 @login_required()
 def get_power_group(token):
-    """
-    获取用户可创建群组
-    :param token:
-    :return:
-    """
     power = token['power']
     data = []
-    if power in POWER_ROLES:
-        index = POWER_ROLES.index(power) + 1
+    if power in POWER_ROLES and power != POWER_ROLES[3]:
+        index = POWER_ROLES.index(power) + (1 if power in INSIDE_ADMIN else 2)
+        if power == POWER_ROLES[POWER_ROLES.__len__() - 1] or power == POWER_ROLES[POWER_ROLES.__len__() - 2]:
+            index = POWER_ROLES.__len__() - 1
         for i in range(index, POWER_ROLES_DICT.__len__()):
             data.append({'name': POWER_ROLES_DICT[i]['name'], 'id': POWER_ROLES_DICT[i]['id']})
     Succ200.data = data
     return Succ200.to_dict()
 
 
+# endregion
+# region 获取用户列表 加盟商及电销只能看到自己创建的账号
 @user.route('/user/get_list', methods=METHODS)
 @login_required()
 @verify_param(['page', 'limit'])
 def get_list(token):
-    """
-    获取用户列表
-    :param token:
-    :return:
-    """
     power = token['power']
     u_id = token['u_id']
     res_dir = request.get_json()
@@ -149,7 +141,11 @@ def get_list(token):
     if power not in INSIDE:
         sql = Users.query.filter(or_(Users.superior == u_id, Users.u_id == u_id))
     else:
-        sql = Users.query
+        if power not in IFCZT:
+            roles = POWER_ROLES[POWER_ROLES.index(power)+1:]
+            sql = Users.query.filter(Users.power.in_(roles))
+        else:
+            sql = Users.query
     if 'search_str' in res_dir:
         sql = sql.filter(Users.username.ilike('%' + res_dir['search_str'] + '%'))
     user_list = sql.limit(limit).offset((page_index - 1) * limit)
@@ -182,15 +178,12 @@ def get_list(token):
     return Succ200.to_dict()
 
 
+# endregion
+# region 是否激活用户
 @user.route('/user/active', methods=METHODS)
 @login_required(INSIDE)
 @verify_param(['id', 'bool'])
 def active(token):
-    """
-        是否激活用户
-        :param token:
-        :return:
-        """
     res_dir = request.get_json()
     u_id = res_dir['id']  # 这里不是U_ID 是一个简单的编号
     e_bool = res_dir['bool']
@@ -206,15 +199,12 @@ def active(token):
     return Succ200.to_dict()
 
 
+# endregion
+# region 删除用户
 @user.route('/user/del', methods=METHODS)
 @login_required(IFCZT)
 @verify_param(['id'])
 def del_user(token):
-    """
-    删除用户
-    :param token:
-    :return:
-    """
     res_dir = request.get_json()
     u_id = res_dir['id']  # 这里不是U_ID 是一个简单的编号
     # noinspection PyBroadException
@@ -230,15 +220,12 @@ def del_user(token):
     return Succ200.to_dict()
 
 
+# endregion
+# region 添加用户
 @user.route('/user/add', methods=METHODS)
 @login_required()
 @verify_param(['username', 'password', 'power'])
 def creat(token):
-    """
-    添加用户
-    :param token:
-    :return:
-    """
     res_dir = request.get_json()
     res_dir['superior'] = token['u_id']
     res_dir['u_id'] = str(uuid.uuid1())
@@ -259,15 +246,12 @@ def creat(token):
     return Succ200.to_dict()
 
 
+# endregion
+# region 编辑用户
 @user.route('/user/edit', methods=METHODS)
 @login_required()
 @verify_param(['u_id', 'password', 'power'])
 def edit(token):
-    """
-    编辑用户
-    :param token:
-    :return:
-    """
     res_dir = request.get_json()
     u_id = res_dir['u_id']  # 这里不是U_ID 是一个简单的编号
     password = res_dir['password']
@@ -284,14 +268,11 @@ def edit(token):
     return Succ200.to_dict()
 
 
+# endregion
+# region 获取加盟商用户列表
 @user.route('/user/get_publicist_list', methods=METHODS)
 @login_required(ADMIN)
 def get_publicist_list(token):
-    """
-    获取加盟商用户列表
-    :param token:
-    :return:
-    """
     items = Users.query.filter_by(power=PUBLICIST).all()
     data = []
     for item in items:
@@ -300,7 +281,8 @@ def get_publicist_list(token):
     return Succ200.to_dict()
 
 
-# 获取用户名
+# endregion
+# region 获取用户名 （非路由函数）
 def get_user_name(u_id):
     if u_id not in INPUT_STAFF:
         user_info = Users.query.filter_by(u_id=u_id).first()
@@ -309,3 +291,19 @@ def get_user_name(u_id):
         else:
             return Error409.msg
     return INPUT_STAFF[u_id]
+
+
+# endregion
+# region 联想搜索用户名
+@user.route('/user/query_name', methods=METHODS)
+@login_required()
+@verify_param(['value'])
+def query_name(token):
+    res_dir = request.get_json()
+    lists = Users.query.filter(Users.username.ilike('%' + res_dir['value'] + '%')).limit(20).all()
+    data = []
+    for item in lists:
+        data.append({'value': item.username, 'id': item.u_id})
+    Succ200.data = data
+    return Succ200.to_dict()
+# endregion
