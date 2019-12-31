@@ -13,10 +13,10 @@ from app.models.Orders import Orders
 from app.models.Users import Users
 from app.utils.code_dict import *
 from app.utils.common import create_token, login_required
-from models.Login_info import Login_info
+from app.models.Login_info import Login_info
 from settings import METHODS, INPUT_STAFF, POWER_INTRODUCTION, POWER_ROLES, POWER_ROLES_DICT, TIME_STR, INSIDE, IFCZT, \
     PUBLICIST, ADMIN, INSIDE_ADMIN
-from utils.common import verify_param
+from app.utils.common import verify_param
 
 user = Blueprint("user", __name__)
 

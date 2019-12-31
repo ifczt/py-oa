@@ -14,7 +14,7 @@ if db:
     from .api.promotion import promotion
     from .api.school import school
     from .api.data_show import data_show
-    from models import Login_info
+    from app.models import Login_info
 # endregion
 
 

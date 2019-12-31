@@ -10,10 +10,10 @@ from api.orders import publicist_safety
 from app import db
 from app.models.Orders import Orders
 from app.models.Users import Users
-from models.Products import Products
+from app.models.Products import Products
 from settings import METHODS, INSIDE, PUBLICIST, LEGEND
-from utils.code_dict import Succ200, Error4015, Error4016, Error4019, Error4017, Error4018
-from utils.common import login_required
+from app.utils.code_dict import Succ200, Error4015, Error4016, Error4019, Error4017, Error4018
+from app.utils.common import login_required
 
 data_show = Blueprint("data_show", __name__)
 

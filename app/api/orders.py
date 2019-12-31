@@ -13,11 +13,11 @@ from app.models.Orders import Orders
 from app.models.Users import Users
 from app.utils.code_dict import Succ200, Error405, Error406
 from app.utils.common import login_required
-from models.Products import Products
-from models.Promotion import Promotion
+from app.models.Products import Products
+from app.models.Promotion import Promotion
 from settings import METHODS, INSIDE, POWER_ROLES, TIME_STR, FINANCE, DELIVERY_STATE, PUBLICIST
-from utils.code_dict import Error409
-from utils.common import verify_param
+from app.utils.code_dict import Error409
+from app.utils.common import verify_param
 
 order = Blueprint("order", __name__)
 

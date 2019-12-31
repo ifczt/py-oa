@@ -2,10 +2,10 @@
 from flask import Blueprint, request
 
 from app import db
-from models.Products import Products
+from app.models.Products import Products
 from settings import METHODS, PRODUCT_LIST, INSIDE
-from utils.code_dict import Succ200, Error409
-from utils.common import login_required, verify_param
+from app.utils.code_dict import Succ200, Error409
+from app.utils.common import login_required, verify_param
 
 product = Blueprint("products", __name__)
 

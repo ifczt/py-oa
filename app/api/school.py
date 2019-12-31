@@ -13,7 +13,7 @@ from app.models.School import School
 from app.utils.code_dict import *
 from app.utils.common import login_required
 from settings import METHODS, SCHOOL,  PUBLICIST, INSIDE
-from utils.common import verify_param
+from app.utils.common import verify_param
 
 school = Blueprint("school", __name__)
 

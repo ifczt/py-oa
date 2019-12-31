@@ -11,7 +11,7 @@ from app.models.Territory import Territory
 from app.utils.code_dict import *
 from app.utils.common import login_required
 from settings import METHODS, PUBLICIST, INSIDE_ADMIN, ADMIN
-from utils.common import verify_param
+from app.utils.common import verify_param
 
 territory = Blueprint("territory", __name__)
 
