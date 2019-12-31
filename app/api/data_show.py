@@ -144,12 +144,13 @@ def get_title(month):
 # region 生成日历
 def get_xAxis(month=datetime.datetime.now().month):
     year = datetime.datetime.now().year
+    year = 2019
     data = []
     if month == datetime.datetime.now().month:
         day = datetime.datetime.now().day + 1
         return list(range(1, day))
     else:
-        day = calendar.monthrange(year, 1)[1]
+        day = calendar.monthrange(year, month)[1]+1
         return list(range(1, day))
 
 
@@ -172,7 +173,6 @@ def get_legend(need_id=False):
 @data_show.route('/data_show/get_line_options', methods=METHODS)
 @login_required()
 def get_line_options(token):
-    get_line_data()
     res_dir = request.get_json()
     month = res_dir['month'] if res_dir and 'month' in res_dir else datetime.datetime.now().month
     title = get_title(month)
@@ -192,7 +192,6 @@ def get_line_options(token):
 @data_show.route('/data_show/get_line_data', methods=METHODS)
 @login_required()
 def get_line_data(token):
-    get_pie_data()
     res_dir = request.get_json()
     month = res_dir['month'] if res_dir and 'month' in res_dir else datetime.datetime.now().month
     master_sql = db.session.query(func.date_format(Orders.input_time, '%d').label('date'),
@@ -220,9 +219,9 @@ def get_line_data(token):
 @data_show.route('/data_show/get_pie_data', methods=METHODS)
 @login_required()
 def get_pie_data(token):
-    users = db.session.query(Users.username.label('publicist'),
+    users = db.session.query(Users.username.label('name'),
                              func.sum(Orders.buy_num)).join(Users, Users.u_id == Orders.publicist).group_by(
-        'publicist').all()
+        'name').all()
     legend = []
     data = {'legend': [], 'data': []}
     for item in users:

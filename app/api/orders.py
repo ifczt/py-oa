@@ -3,6 +3,7 @@ import time
 from datetime import datetime
 
 from flask import Blueprint, request
+from sqlalchemy import extract
 from sqlalchemy.sql import and_,or_
 
 from api.territory import  get_region_tender
@@ -95,6 +96,7 @@ def order_list(token):
     page_index = res_dir.get('page')  # 页数
     limit = res_dir.get('limit')  # 一页多少条
     power = token['power']
+    day = str(datetime.now().day)
     if 'manage' in res_dir and res_dir.get('manage'):  # 管理页面请求拦截
         search_var(res_dir)
         if limit < 100:
@@ -106,7 +108,7 @@ def order_list(token):
         else:
             sql = Orders.query.with_entities(Orders.buy_product, Orders.parent, Orders.phone,
                                              Orders.address, Orders.price, Orders.buy_num, Orders.pay_method,
-                                             Orders.remarks, Orders.id).filter(Orders.delivery_state==0,Orders.apply_discount_state!=1)
+                                             Orders.remarks, Orders.id).filter(Orders.delivery_state==0,Orders.apply_discount_state!=1,extract('day', Orders.delivery_time) <= day)
     else:
         sql = Orders.query.filter(Orders.input_staff==u_id, Orders.delivery_state==0)
     # noinspection PyBroadException

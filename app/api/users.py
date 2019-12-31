@@ -41,6 +41,7 @@ def login():
     # 校验参数
     if not all([username, password]):
         return Error404
+    user_info = Users.query.filter_by(username=username).first()
     # noinspection PyBroadException
     try:
         user_info = Users.query.filter_by(username=username).first()

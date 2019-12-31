@@ -1,7 +1,7 @@
 # -*- coding: UTF-8 -*-
 
 DIALECT = 'mysql'
-DRIVER = 'pymysql'
+DRIVER = 'mysqlconnector'
 # USERNAME = 'ifczt'
 # PASSWORD = 'ifczt'
 # HOST = '112.74.59.83'
@@ -11,8 +11,7 @@ PASSWORD = '123123'
 HOST = '127.0.0.1'
 PORT = '3306'
 DATABASE = 'oa'
-
-SQLALCHEMY_DATABASE_URI = '{}+{}://{}:{}@{}:{}/{}?charset=utf8'.format(
+SQLALCHEMY_DATABASE_URI = '{}+{}://{}:{}@{}:{}/{}?charset=utf8&auth_plugin=mysql_native_password'.format(
     DIALECT, DRIVER, USERNAME, PASSWORD, HOST, PORT, DATABASE
 )
 SQLALCHEMY_COMMIT_ON_TEARDOWN = True
