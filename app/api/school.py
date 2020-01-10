@@ -6,14 +6,14 @@ from flask import Blueprint
 from flask import request
 from sqlalchemy.sql import and_, or_
 
-from api.orders import add_like
-from api.territory import get_region_all
+from app.api.orders import add_like
+from app.api.territory import get_region_all
 from app import db
 from app.models.School import School
 from app.utils.code_dict import *
 from app.utils.common import login_required
 from settings import METHODS, SCHOOL,  PUBLICIST, INSIDE
-from utils.common import verify_param
+from app.utils.common import verify_param
 
 school = Blueprint("school", __name__)
 
@@ -106,7 +106,7 @@ def get_region_school(token):
     data = {'items': [], 'total': total}
     for item in items:
         data['items'].append({'region': item.region, 'school_address': item.school_address,
-                              'school_name': item.school_name, 'quality': item.quality})
+                              'school_name': item.school_name, 'quality': item.quality,'contact_info':item.contact_info})
     Succ200.data = data
     return Succ200.to_dict()
 # endregion

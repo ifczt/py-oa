@@ -5,13 +5,13 @@ from datetime import datetime
 from flask import Blueprint, request
 from sqlalchemy.sql import and_
 
-from api.products import get_product_name
+from app.api.products import get_product_name
 from app import db
 from app.models.Territory import Territory
 from app.utils.code_dict import *
 from app.utils.common import login_required
 from settings import METHODS, PUBLICIST, INSIDE_ADMIN, ADMIN
-from utils.common import verify_param
+from app.utils.common import verify_param
 
 territory = Blueprint("territory", __name__)
 
@@ -190,8 +190,8 @@ def get_region_tender(u_id, time_limit=True):
     # noinspection PyBroadException
     try:
         if time_limit:
-            sql = Territory.query.filter(and_(Territory.publicist == u_id, Territory.eff_time > time.localtime(),
-                                              Territory.start_time < time.localtime()))
+            sql = Territory.query.filter(and_(Territory.publicist == u_id, Territory.eff_time >= time.localtime(),
+                                              Territory.start_time <= time.localtime()))
         else:
             sql = Territory.query.filter(Territory.publicist == u_id)
         terr = sql.all()

@@ -1,19 +1,20 @@
 # -*- coding: UTF-8 -*-
 import calendar
 import datetime
+import random
 
 from flask import Blueprint, request
 from sqlalchemy import func, extract
 from sqlalchemy.sql import and_
 
-from api.orders import publicist_safety
+from app.api.orders import publicist_safety
 from app import db
 from app.models.Orders import Orders
 from app.models.Users import Users
-from models.Products import Products
+from app.models.Products import Products
 from settings import METHODS, INSIDE, PUBLICIST, LEGEND
-from utils.code_dict import Succ200, Error4015, Error4016, Error4019, Error4017, Error4018
-from utils.common import login_required
+from app.utils.code_dict import Succ200, Error4015, Error4016, Error4019, Error4017, Error4018
+from app.utils.common import login_required
 
 data_show = Blueprint("data_show", __name__)
 
@@ -144,8 +145,6 @@ def get_title(month):
 # region 生成日历
 def get_xAxis(month=datetime.datetime.now().month):
     year = datetime.datetime.now().year
-    year = 2019
-    data = []
     if month == datetime.datetime.now().month:
         day = datetime.datetime.now().day + 1
         return list(range(1, day))
@@ -156,10 +155,11 @@ def get_xAxis(month=datetime.datetime.now().month):
 
 # endregion
 # region 生成产品线
-def get_legend(need_id=False):
-    if len(LEGEND) > 0:
-        return LEGEND
-    data = Products.query.with_entities(Products.name, Products.id).all()
+def get_legend(ids=None,need_id=False):
+    sql = Products.query.with_entities(Products.name, Products.id)
+    if ids:
+        sql = sql.filter(Products.id.in_(ids))
+    data = sql.all()
     legend = []
     for item in data:
         if need_id:
@@ -174,10 +174,13 @@ def get_legend(need_id=False):
 @login_required()
 def get_line_options(token):
     res_dir = request.get_json()
+    ids = None
+    if res_dir and 'ids' in res_dir:
+        ids = res_dir['ids']
     month = res_dir['month'] if res_dir and 'month' in res_dir else datetime.datetime.now().month
     title = get_title(month)
     days = get_xAxis(month)
-    legend = get_legend()
+    legend = get_legend(ids)
     data = {
         'title': title,
         'xAxis': days,
@@ -193,13 +196,15 @@ def get_line_options(token):
 @login_required()
 def get_line_data(token):
     res_dir = request.get_json()
+    ids = None
+    if res_dir and 'ids' in res_dir:
+        ids = res_dir['ids']
     month = res_dir['month'] if res_dir and 'month' in res_dir else datetime.datetime.now().month
     master_sql = db.session.query(func.date_format(Orders.input_time, '%d').label('date'),
                                   func.sum(Orders.buy_num)).group_by('date').order_by(
         Orders.input_time).filter(extract('month', Orders.input_time) == month)
-
     master_sql = power_sql(master_sql, token)
-    legend = get_legend(True)
+    legend = get_legend(ids,True)
     data = []
     for item in legend:
         _line_data = master_sql.filter(Orders.buy_product == item[1]).all()

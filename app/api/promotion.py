@@ -4,15 +4,15 @@ import time
 from flask import Blueprint, request
 from sqlalchemy import func
 
-from api.school import get_school_name
+from app.api.school import get_school_name
 from app import db
 from app.models.Orders import Orders
 from app.utils.code_dict import *
 from app.utils.common import login_required
-from models.Products import Products
-from models.Promotion import Promotion
+from app.models.Products import Products
+from app.models.Promotion import Promotion
 from settings import METHODS, PUBLICIST
-from utils.common import verify_param
+from app.utils.common import verify_param
 
 promotion = Blueprint("promotion", __name__)
 

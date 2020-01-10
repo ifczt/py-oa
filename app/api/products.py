@@ -2,10 +2,10 @@
 from flask import Blueprint, request
 
 from app import db
-from models.Products import Products
+from app.models.Products import Products
 from settings import METHODS, PRODUCT_LIST, INSIDE
-from utils.code_dict import Succ200, Error409
-from utils.common import login_required, verify_param
+from app.utils.code_dict import Succ200, Error409
+from app.utils.common import login_required, verify_param
 
 product = Blueprint("products", __name__)
 
@@ -38,7 +38,13 @@ def product_list():
     获取产品列表
     :return: data=[{id,name,price}...]
     """
-    items = Products.query.all()
+    res_dir = request.get_json()
+    if res_dir and 'ids' in res_dir:
+        ids = res_dir['ids'].split(',')
+        sql =Products.query.filter(Products.id.in_(ids))
+    else:
+        sql = Products.query
+    items = sql.all()
     data = []
     for item in items:
         data.append(item.to_dict())

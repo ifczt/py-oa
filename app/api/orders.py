@@ -6,18 +6,18 @@ from flask import Blueprint, request
 from sqlalchemy import extract
 from sqlalchemy.sql import and_,or_
 
-from api.territory import  get_region_tender
-from api.users import get_user_name
+from app.api.territory import  get_region_tender
+from app.api.users import get_user_name
 from app import db
 from app.models.Orders import Orders
 from app.models.Users import Users
 from app.utils.code_dict import Succ200, Error405, Error406
 from app.utils.common import login_required
-from models.Products import Products
-from models.Promotion import Promotion
+from app.models.Products import Products
+from app.models.Promotion import Promotion
 from settings import METHODS, INSIDE, POWER_ROLES, TIME_STR, FINANCE, DELIVERY_STATE, PUBLICIST
-from utils.code_dict import Error409
-from utils.common import verify_param
+from app.utils.code_dict import Error409
+from app.utils.common import verify_param
 
 order = Blueprint("order", __name__)
 

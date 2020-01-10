@@ -14,7 +14,8 @@ if db:
     from .api.promotion import promotion
     from .api.school import school
     from .api.data_show import data_show
-    from models import Login_info
+    from .api.product_group import product_group
+    from .models import Login_info
 # endregion
 
 
@@ -38,5 +39,6 @@ def create_app():
     app.register_blueprint(promotion)
     app.register_blueprint(school)
     app.register_blueprint(data_show)
+    app.register_blueprint(product_group)
     # endregion
     return app
