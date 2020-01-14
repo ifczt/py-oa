@@ -56,6 +56,8 @@ def verify_param(rules):
             if not res_dir:
                 return Error404.to_dict()
             for rule in rules:
+                if rule not in res_dir:
+                    return Error404.to_dict()
                 if type(res_dir[rule]) is not int:
                     if rule not in res_dir or res_dir[rule] is None or len(res_dir[rule]) == 0:
                         return Error404.to_dict()

@@ -14,6 +14,7 @@ from app.models.Users import Users
 from app.utils.code_dict import *
 from app.utils.common import create_token, login_required
 from app.models.Login_info import Login_info
+from log import lg
 from settings import METHODS, INPUT_STAFF, POWER_INTRODUCTION, POWER_ROLES, POWER_ROLES_DICT, TIME_STR, INSIDE, IFCZT, \
     PUBLICIST, ADMIN, INSIDE_ADMIN
 from app.utils.common import verify_param
@@ -25,7 +26,6 @@ user = Blueprint("user", __name__)
 @user.route('/user/logout', methods=METHODS)
 def logout():
     return Succ200.to_dict()
-
 
 # endregion
 # region 用户登录
@@ -308,3 +308,8 @@ def query_name(token):
     Succ200.data = data
     return Succ200.to_dict()
 # endregion
+
+@user.errorhandler(Exception)
+def server_error(e):
+        lg.error(e)
+        raise e

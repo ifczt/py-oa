@@ -175,7 +175,6 @@ def order_input(token):
         db.session.flush()
         db.session.commit()
     except Exception:
-        print(Exception.__dict__)
         return Error409.to_dict()
     Succ200.data = {'id': str(_order.id).zfill(6), 'delivery_state': '未发货'}
     return Succ200.to_dict()

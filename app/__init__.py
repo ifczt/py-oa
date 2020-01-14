@@ -1,6 +1,9 @@
 from flask import Flask
 from flask_cors import CORS
 from flask_sqlalchemy import SQLAlchemy
+
+
+from log import init_log
 from settings import SQLALCHEMY_DATABASE_URI
 
 # region 导入API
@@ -15,6 +18,7 @@ if db:
     from .api.school import school
     from .api.data_show import data_show
     from .api.product_group import product_group
+    from .api.shool_log import school_log
     from .models import Login_info
 # endregion
 
@@ -28,6 +32,8 @@ def create_app():
     # SQLALCHEMY_POOL_TIMEOUT 配置 SQLAlchemy 的连接超时时间
     app.config["SQLALCHEMY_POOL_TIMEOUT"] = 15
     app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
+    app.config["LOG_PATH"] = 'flask_log'
+    init_log(app=app)
     # 初始化SQLAlchemy , 本质就是将以上的配置读取出来
     db.init_app(app)
     # region 注入蓝图
@@ -40,5 +46,6 @@ def create_app():
     app.register_blueprint(school)
     app.register_blueprint(data_show)
     app.register_blueprint(product_group)
+    app.register_blueprint(school_log)
     # endregion
     return app

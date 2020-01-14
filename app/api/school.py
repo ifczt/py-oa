@@ -6,14 +6,14 @@ from flask import Blueprint
 from flask import request
 from sqlalchemy.sql import and_, or_
 
+from app import db
 from app.api.orders import add_like
 from app.api.territory import get_region_all
-from app import db
 from app.models.School import School
 from app.utils.code_dict import *
 from app.utils.common import login_required
-from settings import METHODS, SCHOOL,  PUBLICIST, INSIDE
 from app.utils.common import verify_param
+from settings import METHODS, SCHOOL, PUBLICIST, INSIDE
 
 school = Blueprint("school", __name__)
 
@@ -37,6 +37,8 @@ def add(token):
     db.session.commit()
     Succ200.data = None
     return Succ200.to_dict()
+
+
 # endregion
 # region 编辑学校
 @school.route('/school/edit', methods=METHODS)
@@ -60,6 +62,8 @@ def edit(token):
     except Exception:
         return Error409.to_dict()
     return Succ200.to_dict()
+
+
 # endregion
 # region 联想搜索 只能搜索到其负责区域有效期内的学校
 @school.route('/school/query_school', methods=METHODS)
@@ -78,6 +82,8 @@ def query_school(token):
             'contact_info': item.contact_info})
     Succ200.data = data
     return Succ200.to_dict()
+
+
 # endregion
 # region 获取所负责区域的学校
 @school.route('/school/get_region_school', methods=METHODS)
@@ -106,9 +112,12 @@ def get_region_school(token):
     data = {'items': [], 'total': total}
     for item in items:
         data['items'].append({'region': item.region, 'school_address': item.school_address,
-                              'school_name': item.school_name, 'quality': item.quality,'contact_info':item.contact_info})
+                              'school_name': item.school_name, 'quality': item.quality,
+                              'contact_info': item.contact_info, 'school_code': item.school_code})
     Succ200.data = data
     return Succ200.to_dict()
+
+
 # endregion
 
 
@@ -121,6 +130,8 @@ def get_school_name(sid):
         else:
             return Error409.msg
     return SCHOOL[sid]
+
+
 # endregion
 # region SQL语句处理
 def get_safety_list():
